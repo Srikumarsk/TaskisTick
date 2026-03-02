@@ -1,53 +1,42 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Verify OTP</title>
-    <style>
-        body {
-            font-family: Arial;
-            background: #f4f6f8;
-        }
-        .box {
-            width: 360px;
-            margin: 100px auto;
-            padding: 25px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        input, button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-        }
-        button {
-            background: #2196F3;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #1e88e5;
-        }
-        .error {
-            color: red;
-            margin-top: 10px;
-        }
-    </style>
+    <title>Verify Email - Smart Task</title>
+    <link rel="stylesheet" th:href="@{/logreg.css}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body>
+<body class="auth-body">
 
-<div class="box">
-    <h2>Email Verification</h2>
+<div class="auth-container">
 
-    <form th:action="@{/verify}" method="post">
-        <input type="email" name="email" th:value="${email}" readonly>
-        <input type="text" name="otp" placeholder="Enter OTP" required>
+    <div class="auth-left">
+        <h1>Email Verification 📩</h1>
+        <p>
+            We have sent a 6-digit OTP to your email.
+            Please enter it below to activate your account.
+        </p>
+    </div>
 
-        <button type="submit">Verify</button>
-    </form>
+    <div class="auth-card">
+        <h2>Verify OTP</h2>
 
-    <p class="error" th:text="${error}"></p>
+        <form th:action="@{/verify}" method="post">
+
+            <input type="email" name="email" placeholder="Enter your email" required>
+
+            <input type="text" name="otp" placeholder="Enter OTP" maxlength="6" required>
+
+            <button type="submit" class="auth-btn">Verify Account</button>
+
+        </form>
+
+        <p class="auth-link">
+            Didn't receive OTP?
+            <a href="/resend-otp">Resend</a>
+        </p>
+
+    </div>
+
 </div>
 
 </body>

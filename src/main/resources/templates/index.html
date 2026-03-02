@@ -3,6 +3,7 @@
 <head>
     <title>Task Reminder</title>
    <link rel="stylesheet" th:href="@{/style.css}">
+   <script src="https://cdn.jsdelivr.net/npm/chrono-node@2.3.2/dist/chrono.min.js"></script>
 </head>
 <body>
     <div class="home-topbar">
@@ -23,7 +24,7 @@
     </div>
 </div>
 
-
+    
 <div class="container">
     <h2>Task Reminder</h2>
    
@@ -51,31 +52,40 @@
         <p>Done</p>
     </div>  
 </div>
+<div style="margin-bottom:15px;">
+    <button type="button"
+            onclick="startListening()"
+            style="background:#2196F3;color:white;border:none;padding:10px 15px;border-radius:6px;cursor:pointer;">
+        🎤 Speak Task
+    </button>
+</div>
 
-
- <form th:action="@{/addTask}" th:object="${task}" method="post">
+ <form id="taskForm" th:action="@{/addTask}" th:object="${task}" method="post">
     
     <input type="hidden" th:field="*{id}">
 
-    <input type="text" th:field="*{description}" placeholder="Description">
-
-    <input type="date" th:field="*{date}" required>
+   
 
 
-    <input type="text" th:field="*{title}" placeholder="Task Name" required>
+ 
 
-    <select th:field="*{priority}" placeholder="Priority" required>
-        <option value="LOW">Low</option>
-        <option value="MEDIUM">Medium</option>
-        <option value="HIGH">High</option>
-    </select>
+<input type="text" id="descInput" th:field="*{description}" placeholder="Description">
 
-    <select th:field="*{status}" placeholder="Status" required>
-        <option value="PENDING">Pending</option>
-        <option value="IN_PROGRESS">In Progress</option>
-        <option value="DONE">Done</option>
+<input type="date" id="dateInput" th:field="*{date}" required>
 
-    </select>
+<input type="text" id="titleInput" th:field="*{title}" placeholder="Task Name" required>
+
+<select id="priorityInput" th:field="*{priority}">
+    <option value="LOW">Low</option>
+    <option value="MEDIUM">Medium</option>
+    <option value="HIGH">High</option>
+</select>
+
+<select id="statusInput" th:field="*{status}">
+    <option value="PENDING">Pending</option>
+    <option value="IN_PROGRESS">In Progress</option>
+    <option value="DONE">Done</option>
+</select>
 
     <button type="submit">Add Task</button>
 </form>
@@ -98,7 +108,7 @@
     <option value="30">Every 30 Minutes</option>
     <option value="60">Every 1 Hour</option>
     <option value="180">Every 3 Hours</option>
-    <option value="1440">Daily</option>
+    <option value="1440" selected>Daily</option>
 </select>
 
 
@@ -124,10 +134,11 @@
     <td th:text="${t.title}"></td>
 
     <!-- 3. Description -->
-    <td th:text="${t.description}"></td>
-
+   <td class="description-cell">
+    <span th:text="${#strings.abbreviate(t.description, 20)}"></span>
+</td>
     <!-- 4. Due Date -->
-    <td th:text="${t.date}"></td>
+    <td th:text="${t.date}" class="date-cell"> </td>
 
     <!-- 5. Priority -->
     <td>
@@ -146,14 +157,14 @@
     <!-- 7. Completed At -->
     <td>
         <span th:if="${t.completedAt != null}"
-              th:text="${#temporals.format(t.completedAt,'dd-MM-yyyy HH:MM')}">
+              th:text="${#temporals.format(t.completedAt,'dd-MM-yyyy')}">
         </span>
 
         <span th:if="${t.completedAt == null}">-</span>
     </td>
 
     <!-- 8. Actions -->
-    <td>
+    <td class="actions-cell">
         <a th:href="@{/view/{id}(id=${t.id})}" class="btn view">View</a>
         <a th:href="@{/edit/{id}(id=${t.id})}" class="btn edit">Edit</a>
         <a th:href="@{/delete/{id}(id=${t.id})}" class="btn del">Delete</a>
@@ -239,6 +250,327 @@ document.addEventListener("DOMContentLoaded", function () {
         window.history.replaceState({}, document.title, "/");
     }
 });
+
+</script>
+<script>
+function startListening() {
+
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("Use Chrome for voice input");
+        return;
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+
+    recognition.onresult = function(event) {
+
+        let speech = event.results[0][0].transcript.toLowerCase();
+        console.log("Voice:", speech);
+
+        // 1️⃣ TITLE (default full speech)
+        document.getElementById("titleInput").value = speech;
+
+        // 2️⃣ DATE HANDLING
+        let today = new Date();
+
+        if (speech.includes("tomorrow")) {
+            today.setDate(today.getDate() + 1);
+        }
+
+        if (speech.includes("today")) {
+            // keep today
+        }
+
+        let formatted =
+            today.getFullYear() + "-" +
+            String(today.getMonth()+1).padStart(2,'0') + "-" +
+            String(today.getDate()).padStart(2,'0');
+
+        if (speech.includes("today") || speech.includes("tomorrow")) {
+            document.getElementById("dateInput").value = formatted;
+        }
+
+        // 3️⃣ PRIORITY
+        if (speech.includes("high")) {
+            document.getElementById("priorityInput").value = "HIGH";
+        }
+        else if (speech.includes("medium")) {
+            document.getElementById("priorityInput").value = "MEDIUM";
+        }
+        else if (speech.includes("low")) {
+            document.getElementById("priorityInput").value = "LOW";
+        }
+
+        // 4️⃣ STATUS
+        if (speech.includes("in progress")) {
+            document.getElementById("statusInput").value = "IN_PROGRESS";
+        }
+        else if (speech.includes("done") || speech.includes("completed")) {
+            document.getElementById("statusInput").value = "DONE";
+        }
+        else if (speech.includes("pending")) {
+            document.getElementById("statusInput").value = "PENDING";
+        }
+
+        // 5️⃣ DESCRIPTION (after keyword "description")
+        if (speech.includes("description")) {
+            let parts = speech.split("description");
+            if (parts.length > 1) {
+                document.getElementById("descInput").value = parts[1].trim();
+            }
+        }
+
+    };
+
+    recognition.start();
+}
+</script>
+<script>
+function startListening() {
+
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("Use Chrome browser");
+        return;
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+
+    recognition.onresult = function(event) {
+
+        let speech = event.results[0][0].transcript.toLowerCase();
+        console.log("Voice:", speech);
+
+        // =========================
+        // DATE DETECTION
+        // =========================
+
+        let today = new Date();
+        let detectedDate = null;
+
+        const months = {
+            january:0, february:1, march:2, april:3,
+            may:4, june:5, july:6, august:7,
+            september:8, october:9, november:10, december:11,
+            jan:0, feb:1, mar:2, apr:3,
+            jun:5, jul:6, aug:7,
+            sep:8, oct:9, nov:10, dec:11
+        };
+
+        // tomorrow
+        if (speech.includes("tomorrow")) {
+            today.setDate(today.getDate() + 1);
+            detectedDate = today;
+        }
+
+        // today
+        else if (speech.includes("today")) {
+            detectedDate = today;
+        }
+
+        // after X days
+        else if (speech.includes("after")) {
+            let match = speech.match(/after (\d+) days/);
+            if (match) {
+                today.setDate(today.getDate() + parseInt(match[1]));
+                detectedDate = today;
+            }
+        }
+
+        // in X weeks
+        else if (speech.includes("weeks")) {
+            let match = speech.match(/in (\d+) weeks/);
+            if (match) {
+                today.setDate(today.getDate() + (parseInt(match[1]) * 7));
+                detectedDate = today;
+            }
+        }
+
+        // next weekday
+        else if (speech.includes("next")) {
+
+            const days = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
+
+            for (let i = 0; i < days.length; i++) {
+                if (speech.includes(days[i])) {
+
+                    let currentDay = today.getDay();
+                    let targetDay = i;
+                    let diff = (targetDay - currentDay + 7) % 7;
+                    if (diff === 0) diff = 7;
+
+                    today.setDate(today.getDate() + diff);
+                    detectedDate = today;
+                }
+            }
+        }
+
+        // 26 Feb / Feb 26 / 26 February
+        else {
+            let words = speech.split(" ");
+
+            for (let i = 0; i < words.length; i++) {
+
+                let day = parseInt(words[i]);
+
+                if (!isNaN(day)) {
+
+                    let nextWord = words[i+1];
+                    let prevWord = words[i-1];
+
+                    if (months[nextWord] !== undefined) {
+                        detectedDate = new Date(today.getFullYear(), months[nextWord], day);
+                        break;
+                    }
+
+                    if (months[prevWord] !== undefined) {
+                        detectedDate = new Date(today.getFullYear(), months[prevWord], day);
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (detectedDate) {
+            let formatted =
+                detectedDate.getFullYear() + "-" +
+                String(detectedDate.getMonth()+1).padStart(2,'0') + "-" +
+                String(detectedDate.getDate()).padStart(2,'0');
+
+            document.getElementById("dateInput").value = formatted;
+        }
+
+        // =========================
+        // PRIORITY
+        // =========================
+
+        if (speech.includes("high")) {
+            document.getElementById("priorityInput").value = "HIGH";
+        }
+        else if (speech.includes("medium")) {
+            document.getElementById("priorityInput").value = "MEDIUM";
+        }
+        else if (speech.includes("low")) {
+            document.getElementById("priorityInput").value = "LOW";
+        }
+
+        // =========================
+        // STATUS
+        // =========================
+
+        if (speech.includes("in progress")) {
+            document.getElementById("statusInput").value = "IN_PROGRESS";
+        }
+        else if (speech.includes("done") || speech.includes("completed")) {
+            document.getElementById("statusInput").value = "DONE";
+        }
+        else if (speech.includes("pending")) {
+            document.getElementById("statusInput").value = "PENDING";
+        }
+
+        // =========================
+        // DESCRIPTION
+        // =========================
+
+        if (speech.includes("description")) {
+            let parts = speech.split("description");
+            if (parts.length > 1) {
+                document.getElementById("descInput").value = parts[1].trim();
+            }
+        }
+
+      // =========================
+// CLEAN TITLE PROPERLY (ADVANCED)
+// =========================
+
+let cleanTitle = speech;
+
+// remove command
+cleanTitle = cleanTitle.replace(/^add task/, "");
+
+// remove full date formats like:
+// 29 february
+// 29th february
+// february 29
+// 18 april 2027
+
+cleanTitle = cleanTitle.replace(
+    /\b\d{1,2}(st|nd|rd|th)?\s+(january|february|march|april|may|june|july|august|september|october|november|december)\b/gi,
+    ""
+);
+
+cleanTitle = cleanTitle.replace(
+    /\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2}(st|nd|rd|th)?\b/gi,
+    ""
+);
+
+// remove year if present
+cleanTitle = cleanTitle.replace(/\b\d{4}\b/g, "");
+
+// remove reminder phrases
+cleanTitle = cleanTitle.replace(/remind every \d+ (minute|minutes|hour|hours)/g, "");
+cleanTitle = cleanTitle.replace(/remind daily|remind every day/g, "");
+
+// remove priority
+cleanTitle = cleanTitle.replace(/high priority|medium priority|low priority/g, "");
+
+// remove status
+cleanTitle = cleanTitle.replace(/in progress|pending|done|completed/g, "");
+
+// remove description part
+cleanTitle = cleanTitle.replace(/description.*/g, "");
+
+// remove extra spaces
+cleanTitle = cleanTitle.replace(/\s+/g, " ").trim();
+
+document.getElementById("titleInput").value = cleanTitle;
+// =========================
+// REMINDER INTERVAL
+// =========================
+
+let intervalSelect = document.querySelector("select[name='reminderInterval']");
+
+// minutes
+let minuteMatch = speech.match(/remind every (\d+) minute/);
+if (minuteMatch) {
+    intervalSelect.value = minuteMatch[1];
+}
+
+// hours
+let hourMatch = speech.match(/remind every (\d+) hour/);
+if (hourMatch) {
+    let minutes = parseInt(hourMatch[1]) * 60;
+    intervalSelect.value = minutes;
+}
+
+// daily
+if (speech.includes("remind daily") || speech.includes("remind every day")) {
+    intervalSelect.value = "1440";
+}
+
+// =========================
+// AUTO SUBMIT IF "ADD TASK" SPOKEN
+// =========================
+
+if (speech.startsWith("add task")) {
+
+    // Remove "add task" from title
+    let title = document.getElementById("titleInput").value;
+    title = title.replace("add task", "").trim();
+    document.getElementById("titleInput").value = title;
+
+    // small delay so fields update properly
+    setTimeout(function() {
+        document.getElementById("taskForm").submit();
+    }, 500);
+}
+    };
+
+    recognition.start();
+}
 </script>
 
 <script th:src="@{/theme.js}"></script>

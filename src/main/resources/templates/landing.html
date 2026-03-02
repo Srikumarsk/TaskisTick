@@ -1,60 +1,77 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Task Reminder App</title>
+    <title>Smart Task Reminder</title>
     <link rel="stylesheet" th:href="@{/landing.css}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body>
 
-    <!-- Navbar -->
-    <nav class="navbar">
-        <h2 class="logo">TaskReminder</h2>
-        <div class="nav-buttons">
-            <a href="/login" class="btn login-btn">Login</a>
-            <a href="/register" class="btn register-btn">Register</a>
-        </div>
-    </nav>
+<body class="landing-body">
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <h1>Manage Your Tasks Smarter 🚀</h1>
+<!-- NAVBAR -->
+<nav class="navbar">
+    <div class="logo">🚀 SmartTask</div>
+    <div>
+        <a href="/login" class="nav-btn">Login</a>
+        <a href="/register" class="nav-btn primary">Get Started</a>
+    </div>
+</nav>
+
+<!-- HERO SECTION -->
+<section class="hero">
+    <div class="hero-content">
+        <h1>Manage Tasks Smarter,<br> Not Harder</h1>
         <p>
-            Task Reminder Application helps students and professionals organize tasks,
-            track deadlines, and receive automated reminders.
+            Voice-powered task creation, automated reminders,  
+            and intelligent scheduling — all in one powerful system.
         </p>
 
-        <a href="/register" class="btn start-btn">Get Started</a>
-    </section>
+        <div class="hero-buttons">
+            <a href="/register" class="btn-primary">Start Free</a>
+            <a href="/login" class="btn-secondary">Login</a>
+        </div>
+    </div>
+</section>
 
-    <!-- Features Section -->
-    <section class="features">
-        <h2>Key Features</h2>
+<!-- FEATURES SECTION -->
+<section class="features">
+    <h2>Why Choose Smart Task Reminder?</h2>
 
-        <div class="feature-box">
-            <h3>✅ User Specific Task Access</h3>
-            <p>Each user can securely manage their own tasks.</p>
+    <div class="feature-grid">
+
+        <div class="feature-card">
+            <h3>🎤 Voice Input</h3>
+            <p>Add complete tasks using voice commands in seconds.</p>
         </div>
 
-        <div class="feature-box">
-            <h3>📌 Priority & Status Tracking</h3>
-            <p>Organize tasks by High, Medium, Low priority and track progress.</p>
+        <div class="feature-card">
+            <h3>⏰ Automated Reminders</h3>
+            <p>Get smart email reminders at custom intervals or every morning.</p>
         </div>
 
-        <div class="feature-box">
-            <h3>📅 Multiple Views</h3>
-            <p>Table View, Card View, and Calendar View for better clarity.</p>
+        <div class="feature-card">
+            <h3>📅 Smart Date Detection</h3>
+            <p>Understands “next Monday”, “after 3 days”, and more.</p>
         </div>
 
-        <div class="feature-box">
-            <h3>🔔 Automated Email Reminders</h3>
-            <p>Get reminder mails when deadlines are near.</p>
+        <div class="feature-card">
+            <h3>📊 Dashboard Insights</h3>
+            <p>Track your productivity with live task statistics.</p>
         </div>
-    </section>
 
-    <!-- Footer -->
-    <footer>
-        <p>© 2026 Task Reminder Application | Built with Spring Boot</p>
-    </footer>
+    </div>
+</section>
+
+<!-- CTA SECTION -->
+<section class="cta">
+    <h2>Start Organizing Your Life Today</h2>
+    <a href="/register" class="btn-primary large">Create Free Account</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+    <p>© 2026 Smart Task Reminder | Built with Spring Boot</p>
+</footer>
 
 </body>
 </html>

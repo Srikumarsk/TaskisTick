@@ -45,6 +45,15 @@ public class DashboardController {
                         t.getDate().isBefore(LocalDate.now()) &&
                         !"DONE".equalsIgnoreCase(t.getStatus()))
                 .count();
+        long highPriority = tasks.stream()
+                .filter(t -> t.getPriority() != null &&
+         "High".equalsIgnoreCase(t.getPriority().trim()))
+                .count();
+
+long dueToday = tasks.stream()
+        .filter(t -> t.getDate() != null &&
+                     t.getDate().equals(LocalDate.now()))
+        .count();              
 
         List<Task> recentTasks = tasks.stream()
                 .sorted((a, b) -> b.getId().compareTo(a.getId()))
@@ -56,6 +65,8 @@ public class DashboardController {
         model.addAttribute("pendingTasks", pending);
         model.addAttribute("inProgressTasks", InProgress);
         model.addAttribute("overdueTasks", overdue);
+        model.addAttribute("highPriority", highPriority);
+        model.addAttribute("dueTodayTasks", dueToday);
         model.addAttribute("recentTasks", recentTasks);
         model.addAttribute("user", loggedUser);
 

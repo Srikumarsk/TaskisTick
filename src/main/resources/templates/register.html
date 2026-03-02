@@ -1,38 +1,135 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Register</title>
+    <title>Register - Smart Task</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <style>
-        body { font-family: Arial; background: #f4f6f8; }
-        .box {
-            width: 380px;
-            margin: 80px auto;
-            padding: 25px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        input, button {
+
+        .auth-container {
+            width: 420px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 35px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+            color: white;
+            position: relative;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        input {
             width: 100%;
-            padding: 10px;
-            margin-top: 10px;
+            padding: 12px;
+            margin-top: 12px;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+            font-size: 14px;
         }
-        button { background: #4CAF50; color: white; border: none; }
-        .error { color: red; margin-top: 10px; }
-        .success { color: green; margin-top: 10px; }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 18px;
+            border-radius: 8px;
+            border: none;
+            background: white;
+            color: #667eea;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #f1f1f1;
+        }
+
+        .success {
+            color: #00ff88;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .error {
+            color: #ff4d4d;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 22px;
+            cursor: pointer;
+            font-size: 14px;
+            color: black;
+        }
+
+        /* 🎉 Success Animation */
+        .confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: none;
+        }
+
+        .confetti span {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: yellow;
+            animation: fall 2s linear infinite;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-10px) rotate(0); }
+            100% { transform: translateY(100vh) rotate(360deg); }
+        }
+
     </style>
 </head>
+
 <body>
 
-<div class="box">
-    <h2>Register</h2>
+<div class="auth-container">
+
+    <h2 th:if="${!showOtp}">Create Account 🚀</h2>
+    <h2 th:if="${showOtp}">Verify Your Email 📩</h2>
 
     <!-- SEND OTP FORM -->
-    <form th:action="@{/send-otp}" th:object="${user}" method="post"
+    <form th:action="@{/send-otp}" th:object="${user}" method="post" autocomplete="off"
           th:if="${!showOtp}">
-        <input th:field="*{name}" placeholder="Name" required>
-        <input th:field="*{email}" placeholder="Email" required>
-        <input th:field="*{password}" placeholder="Password" required>
+
+        <input th:field="*{name}" placeholder="Full Name" required autocomplete="off">
+        <input th:field="*{email}" placeholder="Email Address" required  autocomplete="new-email">
+
+        <div class="password-wrapper">
+            <input type="password" id="passwordField"
+                   th:field="*{password}" placeholder="Password" required autocomplete="new-password">
+            <span class="toggle-password" onclick="togglePassword()">👁</span>
+        </div>
 
         <button type="submit">Send OTP</button>
     </form>
@@ -40,14 +137,54 @@
     <!-- VERIFY OTP FORM -->
     <form th:action="@{/verify-otp}" method="post" th:if="${showOtp}">
         <input type="email" name="email" th:value="${email}" readonly>
-        <input type="text" name="otp" placeholder="Enter OTP" required>
+        <input type="text" name="otp" placeholder="Enter 6-digit OTP" required>
 
         <button type="submit">Verify & Register</button>
     </form>
 
     <p class="success" th:text="${message}"></p>
     <p class="error" th:text="${error}"></p>
+
 </div>
+
+<!-- 🎉 Confetti Container -->
+<div class="confetti" id="confetti"></div>
+
+<script>
+    // 👁 Show / Hide Password
+    function togglePassword() {
+        const field = document.getElementById("passwordField");
+        field.type = field.type === "password" ? "text" : "password";
+    }
+
+    // 🎉 Success Animation Trigger
+    document.addEventListener("DOMContentLoaded", function () {
+        const successText = document.querySelector(".success");
+
+        if (successText && successText.textContent.includes("successfully")) {
+            launchConfetti();
+        }
+    });
+
+    function launchConfetti() {
+        const confetti = document.getElementById("confetti");
+        confetti.style.display = "block";
+
+        for (let i = 0; i < 100; i++) {
+            const span = document.createElement("span");
+            span.style.left = Math.random() * 100 + "vw";
+            span.style.animationDelay = Math.random() * 2 + "s";
+            span.style.background = 
+                ["#ff0","#0ff","#f0f","#0f0","#f00"][Math.floor(Math.random()*5)];
+            confetti.appendChild(span);
+        }
+
+        setTimeout(() => {
+            confetti.style.display = "none";
+            confetti.innerHTML = "";
+        }, 3000);
+    }
+</script>
 
 </body>
 </html>

@@ -99,6 +99,10 @@ public String login(@RequestParam String email,
         model.addAttribute("message", "OTP sent to your email");
         return "register";
     }
+    @GetMapping("/verify")
+public String showVerifyPage() {
+    return "verify";
+}
 
     // VERIFY OTP
     @PostMapping("/verify-otp")

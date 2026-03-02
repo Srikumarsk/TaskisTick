@@ -1,104 +1,51 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Login</title>
-    <style>
-        body {
-            font-family: Arial;
-            background: #f4f6f8;
-        }
-        .box {
-            width: 360px;
-            margin: 100px auto;
-            padding: 25px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        input, button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-        }
-        button {
-            background: #673ab7;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #5e35b1;
-        }
-        .error {
-            color: red;
-            margin-top: 10px;
-        }
-        .link {
-            margin-top: 15px;
-            text-align: center;
-        }
-        /* Password eye button */
-.password-wrapper {
-    position: relative;
-}
-
-.password-wrapper input {
-    width: 90%;
-    padding-right: 40px;
-}
-
-.toggle-password {
-    position: absolute;
-    top: 50%;
-    right: 12px;
-    transform: translateY(-50%);
-    cursor: pointer;
-    font-size: 16px;
-    color: #666;
-    user-select: none;
-}
-
-.toggle-password:hover {
-    color: #4CAF50;
-}
-
-    </style>
+    <title>Login - Smart Task</title>
+    <link rel="stylesheet" th:href="@{/login.css}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body>
+<body class="auth-body">
 
-<div class="box">
-    <h1>Task Reminder</h1>
-    <h2>Login</h2>
+<div class="auth-container">
 
-    <form th:action="@{/login}" method="post">
-        <input type="email" name="email" placeholder="Email" required>
-        <div class="password-wrapper">
-    <input type="password" id="password" name="password" placeholder="Password" required>
-    <span class="toggle-password" onclick="togglePassword()">👁️</span>
+    <div class="auth-left">
+        <h1>Welcome Back 👋</h1>
+        <p>Login to continue managing your smart tasks with automation and voice power.</p>
+    </div>
+
+    <div class="auth-card">
+        <h2>Login</h2>
+
+        <form th:action="@{/login}" method="post" autocomplete="off">
+            <input type="text" style="display:none">
+            <input type="password" style="display:none">
+
+            <input type="email" name="email" placeholder="Email Address" required autocomplete="username">
+
+            <div class="password-wrapper">
+    <input type="password" id="loginPassword"
+           name="password"
+           placeholder="Password" required autocomplete="current-password">
+    <span class="toggle-password" onclick="toggleLoginPassword()">👁</span>
 </div>
 
+            <button type="submit" class="auth-btn">Login</button>
 
-        <button type="submit">Login</button>
-    </form>
+        </form>
 
-    <p class="error" th:text="${error}"></p>
-
-    <div class="link">
-        <a th:href="@{/register}">Create new account</a>
+        <p class="auth-link">
+            Don't have an account?
+            <a href="/register">Register Here</a>
+        </p>
     </div>
+
 </div>
 <script>
-function togglePassword() {
-    const passwordInput = document.getElementById("password");
-
-    if (passwordInput.type === "password") {
-        passwordInput.type = "text";
-    } else {
-        passwordInput.type = "password";
-    }
+function toggleLoginPassword() {
+    const field = document.getElementById("loginPassword");
+    field.type = field.type === "password" ? "text" : "password";
 }
 </script>
-
-
 </body>
 </html>

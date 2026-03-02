@@ -1144,3 +1144,22 @@ body.dark .card-completed {
     box-shadow: 0 6px 15px rgba(0,0,0,0.2);
     z-index: 9999;
 }
+/* Keep action buttons in one row */
+td.actions-cell {
+    white-space: nowrap;
+}
+
+td.actions-cell .btn {
+    display: inline-block;
+    margin-right: 6px;
+}
+td.actions-cell {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+/* Keep Due Date in single line */
+td.date-cell {
+    white-space: nowrap;
+}
+

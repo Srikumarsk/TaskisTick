@@ -1,6 +1,8 @@
 package com.task.taskreminder.controller;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -214,6 +216,14 @@ public String addTask(@ModelAttribute Task task, HttpSession session) {
     User loggedUser = (User) session.getAttribute("loggedUser");
 
     task.setUser(loggedUser);   // 🔥 STEP 3 (IMPORTANT)
+    // Apply Smart Reminder Logic
+Integer finalInterval = calculateSmartReminder(
+        task.getDate(),
+        task.getPriority(),
+        task.getReminderInterval()
+);
+
+task.setReminderInterval(finalInterval);
      if (task.getReminderInterval() == null) {
         task.setReminderInterval(60);
     }
@@ -227,6 +237,41 @@ public String addTask(@ModelAttribute Task task, HttpSession session) {
     );
 
     return "redirect:/home";
+}
+
+// SMART AUTO REMINDER LOGIC
+
+private Integer calculateSmartReminder(LocalDate dueDate, String priority, Integer userSelectedInterval) {
+
+    long daysLeft = ChronoUnit.DAYS.between(LocalDate.now(), dueDate);
+
+    // HIGH PRIORITY
+    if (priority.equals("HIGH")) {
+
+        if (daysLeft == 0) return 120;   // 2 hrs
+        if (daysLeft == 1) return 360;   // 6 hrs
+        if (daysLeft == 2) return 720;   // 12 hrs
+
+        return userSelectedInterval;
+    }
+
+    // MEDIUM PRIORITY
+    else if (priority.equals("MEDIUM")) {
+
+        if (daysLeft == 0) return 180;   // 3 hrs
+        if (daysLeft == 1) return 480;   // 8 hrs
+
+        return userSelectedInterval;
+    }
+
+    // LOW PRIORITY
+    else {
+
+        if (daysLeft == 0) return 240;   // 4 hrs
+        if (daysLeft == 1) return 600;   // 10 hrs
+
+        return userSelectedInterval;
+    }
 }
 
 @GetMapping("/edit/{id}")

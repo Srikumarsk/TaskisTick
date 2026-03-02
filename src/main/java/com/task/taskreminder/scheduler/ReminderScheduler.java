@@ -19,50 +19,107 @@ public class ReminderScheduler {
                              EmailService emailService) {
         this.taskRepository = taskRepository;
         this.emailService = emailService;
-        System.out.println("✅ ReminderScheduler Bean Created");
+        System.out.println("✅ ReminderScheduler Started");
     }
 
-    // 🔥 Runs every MORNING AT 8AM
-    @Scheduled(cron = "0 0 8 * * ?")
-    public void sendIntervalReminders() {
+    // =====================================================
+    // 🌅 DAILY MORNING REMINDER – 8 AM IST
+    // =====================================================
+    @Scheduled(cron = "0 16 11 * * ?", zone = "Asia/Kolkata")
+    public void sendMorningReminders() {
 
-        System.out.println("⏰ Checking reminders...");
+        System.out.println("🌅 Running Morning Reminder");
 
-        List<Task> tasks = taskRepository.findByStatus("PENDING");
+        List<Task> tasks = taskRepository.findAll();
 
         for (Task task : tasks) {
 
-    if (task.getUser() == null) {
-        System.out.println("⚠ Task has no user. Skipping: " + task.getTitle());
-        continue;
+            if (!isValidTask(task)) continue;
+
+            sendReminder(task);
+        }
     }
 
-    Integer interval = task.getReminderInterval();
-    if (interval == null || interval <= 0) continue;
+    // =====================================================
+    // ⏰ CUSTOM INTERVAL REMINDER (Runs Every 1 Minute)
+    // =====================================================
+    @Scheduled(fixedRate = 60000)
+    public void sendIntervalReminders() {
 
-    LocalDateTime now = LocalDateTime.now();
-    LocalDateTime lastSent = task.getLastReminderSentAt();
+        System.out.println("⏰ Checking Interval Reminders...");
 
-    boolean shouldSend = false;
+        List<Task> tasks = taskRepository.findAll();
 
-    if (lastSent == null) {
-        shouldSend = true;
-    } else if (lastSent.plusMinutes(interval).isBefore(now)) {
-        shouldSend = true;
+        for (Task task : tasks) {
+
+            if (!isValidTask(task)) continue;
+
+            Integer interval = task.getReminderInterval();
+
+            if (interval == null || interval <= 0) {
+                continue;
+            }
+
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime lastSent = task.getLastReminderSentAt();
+
+            boolean shouldSend = false;
+
+            if (lastSent == null) {
+                shouldSend = true;
+            } else if (lastSent.plusMinutes(interval).isBefore(now)) {
+                shouldSend = true;
+            }
+
+            if (shouldSend) {
+                sendReminder(task);
+            }
+        }
     }
 
-    if (shouldSend) {
+    // =====================================================
+    // COMMON REMINDER METHOD
+    // =====================================================
+    private void sendReminder(Task task) {
 
-        emailService.sendTaskReminder(
-                task.getUser().getEmail(),
-                task
-        );
+        try {
 
-        task.setLastReminderSentAt(now);
-        taskRepository.save(task);
+            String email = task.getUser().getEmail();
 
-        System.out.println("📩 Reminder sent for task: " + task.getTitle());
+            if (email == null || email.isBlank()) {
+                System.out.println("⚠ No email found for task: " + task.getId());
+                return;
+            }
+
+            emailService.sendTaskReminder(email, task);
+
+            task.setLastReminderSentAt(LocalDateTime.now());
+            taskRepository.save(task);
+
+            System.out.println("📩 Reminder sent for: " + task.getTitle());
+
+        } catch (Exception e) {
+            System.out.println("❌ Error sending reminder for task: " + task.getId());
+            e.printStackTrace();
+        }
     }
-}
+
+    // =====================================================
+    // VALIDATION METHOD
+    // =====================================================
+    private boolean isValidTask(Task task) {
+
+        if (task == null) return false;
+
+        if (task.getStatus() == null) return false;
+
+        if (!task.getStatus().equalsIgnoreCase("PENDING")) return false;
+
+        if (task.getUser() == null) {
+            System.out.println("⚠ Skipping task with null user: " + task.getId());
+            return false;
+        }
+
+        return true;
     }
 }
