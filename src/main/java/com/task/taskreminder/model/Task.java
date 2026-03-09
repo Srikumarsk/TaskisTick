@@ -3,6 +3,7 @@ package com.task.taskreminder.model;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Entity
 public class Task {
@@ -16,6 +17,7 @@ public class Task {
     private String status;
     private LocalDate date;
     private LocalDateTime completedAt;
+    private LocalTime reminderTime;
 
     
     
@@ -104,6 +106,11 @@ public LocalDateTime getLastReminderSentAt() {
 public void setLastReminderSentAt(LocalDateTime lastReminderSentAt) {
     this.lastReminderTime = lastReminderSentAt;
 }
-
+public LocalTime getReminderTime() {
+    return reminderTime;        
+}
+public void setReminderTime(LocalTime reminderTime) {
+    this.reminderTime = reminderTime;
+}
 
 }

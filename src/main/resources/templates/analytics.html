@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Analytics - Smart Task Reminder</title>
+    <meta charset="UTF-8">
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 900px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 30px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .completed { background: #4CAF50; }
+        .pending { background: #FF9800; }
+        .progress { background: #2196F3; }
+
+        /* 🔥 RESIZED CHART */
+        .chart-container {
+            width: 300px;   /* change here if needed */
+            height: 300px;
+            margin: 30px auto;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 8px 15px;
+            background: #2196F3;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>📊 Task Analytics</h2>
+
+    <!-- Summary Cards -->
+    <div class="stats">
+        <div class="card completed">
+            Completed: <span th:text="${completedTasks}">0</span>
+        </div>
+
+        <div class="card pending">
+            Pending: <span th:text="${pendingTasks}">0</span>
+        </div>
+
+        <div class="card progress">
+            In Progress: <span th:text="${inProgressTasks}">0</span>
+        </div>
+    </div>
+
+    <!-- Hidden Values -->
+    <input type="hidden" id="completedValue" th:value="${completedTasks}">
+    <input type="hidden" id="pendingValue" th:value="${pendingTasks}">
+    <input type="hidden" id="progressValue" th:value="${inProgressTasks}">
+
+    <!-- Chart -->
+    <div class="chart-container">
+        <canvas id="statusChart"></canvas>
+    </div>
+
+    <a href="/dashboard" class="back-btn">⬅ Back to Dashboard</a>
+    <h3 style="margin-top:40px;">📊 Task Comparison</h3>
+
+   <div class="chart-container">
+    <canvas id="barChart"></canvas>
+   </div>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const completed = parseInt(document.getElementById("completedValue").value) || 0;
+    const pending = parseInt(document.getElementById("pendingValue").value) || 0;
+    const inProgress = parseInt(document.getElementById("progressValue").value) || 0;
+
+    const ctx = document.getElementById("statusChart").getContext("2d");
+
+    new Chart(ctx, {
+        type: "pie",
+        data: {
+            labels: ["Completed", "Pending", "In Progress"],
+            datasets: [{
+                data: [completed, pending, inProgress],
+                backgroundColor: ["#4CAF50", "#FF9800", "#2196F3"]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: "bottom"
+                }
+            }
+        }
+    });
+    // =========================
+// BAR CHART
+// =========================
+
+const barCtx = document.getElementById("barChart").getContext("2d");
+
+new Chart(barCtx, {
+    type: "bar",
+    data: {
+        labels: ["Completed", "Pending", "In Progress"],
+        datasets: [{
+            label: "Tasks Count",
+            data: [completed, pending, inProgress],
+            backgroundColor: [
+                "#4CAF50",
+                "#FF9800",
+                "#2196F3"
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+});
+</script>
+
+</body>
+</html>

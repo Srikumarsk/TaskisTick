@@ -59,6 +59,14 @@ long dueToday = tasks.stream()
                 .sorted((a, b) -> b.getId().compareTo(a.getId()))
                 .limit(5)
                 .toList();
+                
+       double productivityScore = 0;
+
+if(total > 0){
+    productivityScore = (completed * 100.0) / total;
+}
+
+model.addAttribute("productivityScore", Math.round(productivityScore));
 
         model.addAttribute("totalTasks", total);
         model.addAttribute("completedTasks", completed);

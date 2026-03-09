@@ -54,11 +54,16 @@
 </div>
 <div style="margin-bottom:15px;">
     <button type="button"
-            onclick="startListening()"
+            onclick="startListeningMulti()"
             style="background:#2196F3;color:white;border:none;padding:10px 15px;border-radius:6px;cursor:pointer;">
         🎤 Speak Task
     </button>
 </div>
+<select id="languageSelect" style="margin-bottom:10px;padding:6px;border-radius:6px;">
+    <option value="en-IN">English</option>
+    <option value="te-IN">Telugu</option>
+    <option value="hi-IN">Hindi</option>
+</select>
 
  <form id="taskForm" th:action="@{/addTask}" th:object="${task}" method="post">
     
@@ -570,6 +575,116 @@ if (speech.startsWith("add task")) {
     };
 
     recognition.start();
+}
+</script>
+<script>
+function startListeningMulti() {
+
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("Use Chrome browser");
+        return;
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    const selectedLang = document.getElementById("languageSelect").value;
+    recognition.lang = selectedLang;
+    recognition.interimResults = false;
+
+    recognition.onresult = function(event) {
+
+        let speech = event.results[0][0].transcript.toLowerCase();
+        console.log("Voice (Multi):", speech);
+
+        // ===============================
+        // TELUGU → ENGLISH CONVERSION
+        // ===============================
+
+        speech = speech
+            .replace(/రేపు/g, "tomorrow")
+            .replace(/ఈరోజు/g, "today")
+            .replace(/అధిక/g, "high")
+            .replace(/హై/g, "high")
+            .replace(/మధ్య/g, "medium")
+            .replace(/తక్కువ/g, "low")
+            .replace(/పూర్తి/g, "completed");
+
+        // ===============================
+        // HINDI → ENGLISH CONVERSION
+        // ===============================
+
+        speech = speech
+            .replace(/कल/g, "tomorrow")
+            .replace(/आज/g, "today")
+            .replace(/उच्च/g, "high")
+            .replace(/मध्यम/g, "medium")
+            .replace(/कम/g, "low")
+            .replace(/पूरा/g, "completed")
+            .replace(/जारी/g, "in progress");
+
+        // Put converted speech into title temporarily
+        document.getElementById("titleInput").value = speech;
+
+        // Call English processor
+        processEnglishLogic(speech);
+    };
+
+    recognition.start();
+}
+
+
+// ======================================
+// THIS REUSES YOUR EXISTING ENGLISH LOGIC
+// ======================================
+
+function processEnglishLogic(speech) {
+
+    let today = new Date();
+
+    // DATE
+    if (speech.includes("tomorrow")) {
+        today.setDate(today.getDate() + 1);
+    }
+
+    let formatted =
+        today.getFullYear() + "-" +
+        String(today.getMonth()+1).padStart(2,'0') + "-" +
+        String(today.getDate()).padStart(2,'0');
+
+    if (speech.includes("today") || speech.includes("tomorrow")) {
+        document.getElementById("dateInput").value = formatted;
+    }
+
+    // PRIORITY
+    if (speech.includes("high")) {
+        document.getElementById("priorityInput").value = "HIGH";
+    }
+    else if (speech.includes("medium")) {
+        document.getElementById("priorityInput").value = "MEDIUM";
+    }
+    else if (speech.includes("low")) {
+        document.getElementById("priorityInput").value = "LOW";
+    }
+
+    // STATUS
+    if (speech.includes("in progress")) {
+        document.getElementById("statusInput").value = "IN_PROGRESS";
+    }
+    else if (speech.includes("completed") || speech.includes("done")) {
+        document.getElementById("statusInput").value = "DONE";
+    }
+    else if (speech.includes("pending")) {
+        document.getElementById("statusInput").value = "PENDING";
+    }
+    // CLEAN TITLE AFTER PROCESSING
+let cleanTitle = speech;
+
+cleanTitle = cleanTitle.replace(/tomorrow|today/g, "");
+cleanTitle = cleanTitle.replace(/high|medium|low/g, "");
+cleanTitle = cleanTitle.replace(/in progress|completed|done|pending/g, "");
+
+cleanTitle = cleanTitle.replace(/\s+/g, " ").trim();
+
+document.getElementById("titleInput").value = cleanTitle;
 }
 </script>
 

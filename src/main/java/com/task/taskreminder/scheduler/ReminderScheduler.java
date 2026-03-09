@@ -3,10 +3,12 @@ package com.task.taskreminder.scheduler;
 import com.task.taskreminder.model.Task;
 import com.task.taskreminder.repository.TaskRepository;
 import com.task.taskreminder.service.EmailService;
+
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 @Component
@@ -19,16 +21,17 @@ public class ReminderScheduler {
                              EmailService emailService) {
         this.taskRepository = taskRepository;
         this.emailService = emailService;
+
         System.out.println("✅ ReminderScheduler Started");
     }
 
     // =====================================================
-    // 🌅 DAILY MORNING REMINDER – 8 AM IST
+    // 🌅 DAILY MORNING REMINDER (8 AM)
     // =====================================================
-    @Scheduled(cron = "0 16 11 * * ?", zone = "Asia/Kolkata")
+    @Scheduled(cron = "0 15 10 * * ?", zone = "Asia/Kolkata")
     public void sendMorningReminders() {
 
-        System.out.println("🌅 Running Morning Reminder");
+        System.out.println("🌅 Sending Daily Morning Reminders");
 
         List<Task> tasks = taskRepository.findAll();
 
@@ -41,55 +44,45 @@ public class ReminderScheduler {
     }
 
     // =====================================================
-    // ⏰ CUSTOM INTERVAL REMINDER (Runs Every 1 Minute)
+    // ⏰ USER CUSTOM REMINDER TIME
     // =====================================================
-    @Scheduled(fixedRate = 60000)
-    public void sendIntervalReminders() {
+    @Scheduled(cron = "0 * * * * ?", zone = "Asia/Kolkata")
+    public void sendUserSelectedReminders() {
 
-        System.out.println("⏰ Checking Interval Reminders...");
+        System.out.println("⏰ Checking Custom Reminder Times");
 
         List<Task> tasks = taskRepository.findAll();
+
+        LocalTime now = LocalTime.now().withSecond(0).withNano(0);
 
         for (Task task : tasks) {
 
             if (!isValidTask(task)) continue;
 
-            Integer interval = task.getReminderInterval();
+            LocalTime reminderTime = task.getReminderTime();
 
-            if (interval == null || interval <= 0) {
-                continue;
-            }
+            if (reminderTime == null) continue;
 
-            LocalDateTime now = LocalDateTime.now();
-            LocalDateTime lastSent = task.getLastReminderSentAt();
+            LocalTime taskTime = reminderTime.withSecond(0).withNano(0);
 
-            boolean shouldSend = false;
-
-            if (lastSent == null) {
-                shouldSend = true;
-            } else if (lastSent.plusMinutes(interval).isBefore(now)) {
-                shouldSend = true;
-            }
-
-            if (shouldSend) {
+            if (taskTime.equals(now)) {
                 sendReminder(task);
             }
         }
     }
 
     // =====================================================
-    // COMMON REMINDER METHOD
+    // SEND EMAIL
     // =====================================================
     private void sendReminder(Task task) {
 
         try {
 
+            if (task.getUser() == null) return;
+
             String email = task.getUser().getEmail();
 
-            if (email == null || email.isBlank()) {
-                System.out.println("⚠ No email found for task: " + task.getId());
-                return;
-            }
+            if (email == null || email.isBlank()) return;
 
             emailService.sendTaskReminder(email, task);
 
@@ -99,13 +92,14 @@ public class ReminderScheduler {
             System.out.println("📩 Reminder sent for: " + task.getTitle());
 
         } catch (Exception e) {
+
             System.out.println("❌ Error sending reminder for task: " + task.getId());
             e.printStackTrace();
         }
     }
 
     // =====================================================
-    // VALIDATION METHOD
+    // TASK VALIDATION
     // =====================================================
     private boolean isValidTask(Task task) {
 
@@ -113,12 +107,13 @@ public class ReminderScheduler {
 
         if (task.getStatus() == null) return false;
 
-        if (!task.getStatus().equalsIgnoreCase("PENDING")) return false;
+        String status = task.getStatus().toUpperCase();
 
-        if (task.getUser() == null) {
-            System.out.println("⚠ Skipping task with null user: " + task.getId());
+        if (!(status.equals("PENDING") || status.equals("IN_PROGRESS"))) {
             return false;
         }
+
+        if (task.getUser() == null) return false;
 
         return true;
     }

@@ -83,3 +83,29 @@ h2 {
     transform: translateY(-1px);
 }
 
+.analytics-btn {
+    display: inline-block;
+    padding: 10px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    color: white;
+    background: linear-gradient(135deg, #4e73df, #1cc88a);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+}
+
+.analytics-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+    background: linear-gradient(135deg, #2e59d9, #17a673);
+}
+
+.analytics-btn:active {
+    transform: scale(0.96);
+}
+.productivity{
+background: linear-gradient(45deg,#7b2ff7,#f107a3);
+color:white;
+}
